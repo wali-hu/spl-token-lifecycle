@@ -128,7 +128,47 @@ async function main() {
     );
     console.log('Thaw Tx:', thawTx);
 
-    
+    console.log('\n=== PHASE 3: FINALIZATION ===');
+
+    let mintInfo = await getMint(connection, mint);
+    console.log('Before revoke: mintAuthority  =', mintInfo.mintAuthority?.toBase58() || 'null');
+    console.log('Before revoke: freezeAuthority =', mintInfo.freezeAuthority?.toBase58() || 'null');
+
+    console.log('\n--- Wallet A REVOKES mint authority (fixed supply) ---');
+    const revokeMintTx = await setAuthority(
+        connection,
+        walletA,
+        mint,
+        walletA.publicKey,
+        AuthorityType.MintTokens,
+        null
+    );
+    console.log('Revoke Mint Authority Tx:', revokeMintTx);
+
+    console.log('\n--- Wallet B REVOKES freeze authority (no more freeze) ---');
+    const revokeFreezeTx = await setAuthority(
+        connection,
+        walletB,
+        mint,
+        walletB.publicKey,
+        AuthorityType.FreezeAccount,
+        null
+    );
+    console.log('Revoke Freeze Authority Tx:', revokeFreezeTx);
+
+    mintInfo = await getMint(connection, mint);
+    console.log('\n=== FINAL MINT STATE ===');
+    console.log('Mint:', mint.toBase58());
+    console.log('mintAuthority  =', mintInfo.mintAuthority?.toBase58() || 'null');
+    console.log('freezeAuthority =', mintInfo.freezeAuthority?.toBase58() || 'null');
+
+    teamAccountInfo = await getAccount(connection, teamTokenAccount.address);
+    userAccountInfo = await getAccount(connection, userTokenAccount.address);
+    console.log('Final Team balance:', teamAccountInfo.amount.toString());
+    console.log('Final User balance:', userAccountInfo.amount.toString());
+
+
+
 }
 
 main().catch((err) => {
