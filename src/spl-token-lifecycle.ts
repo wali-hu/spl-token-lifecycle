@@ -75,7 +75,60 @@ async function main() {
     );
     console.log('User Token Account (C):', userTokenAccount.address.toBase58());
     
+     console.log('\n=== PHASE 2: PROJECT GROWTH ===');
 
+    const initialMintAmount = 1_000n * 10n ** BigInt(decimals);
+    const mintTx1 = await mintTo(
+        connection,
+        walletA,               
+        mint,
+        teamTokenAccount.address,
+        walletA,                
+        initialMintAmount
+    );
+    console.log('Minted initial supply to A. Tx:', mintTx1);
+
+    let teamAccountInfo = await getAccount(connection, teamTokenAccount.address);
+    console.log('Team balance after mint', teamAccountInfo.amount.toString());
+
+    const amountToUser = 100n * 10n ** BigInt(decimals);
+    const transferTx = await transfer(
+        connection,
+        walletA,
+        teamTokenAccount.address,
+        userTokenAccount.address,
+        walletA,
+        amountToUser
+    );
+    console.log('Transferred tokens from A to C. Tx:', transferTx);
+
+    let userAccountInfo = await getAccount(connection, userTokenAccount.address);
+    teamAccountInfo = await getAccount(connection, teamTokenAccount.address);
+    console.log('User balance after receiving tokens:', userAccountInfo.amount.toString());
+    console.log('Team balance after transfer:', teamAccountInfo.amount.toString());
+
+    console.log('\n--- Admin B FREEZES user C account ---');
+
+    const freezeTx = await freezeAccount(
+        connection,
+        walletB,
+        userTokenAccount.address,
+        mint,
+        walletB.publicKey
+    );
+    console.log('Freeze Tx:', freezeTx);
+
+    console.log('\n--- Admin B THAWS user C account ---');
+    const thawTx = await thawAccount(
+        connection,
+        walletB,
+        userTokenAccount.address,
+        mint,
+        walletB.publicKey
+    );
+    console.log('Thaw Tx:', thawTx);
+
+    
 }
 
 main().catch((err) => {
