@@ -107,6 +107,22 @@ async function main() {
     console.log('User balance after receiving tokens:', userAccountInfo.amount.toString());
     console.log('Team balance after transfer:', teamAccountInfo.amount.toString());
 
+    console.log('\n=== PHASE 2.1: TRANSFER MINT AUTHORITY A -> B ===');
+
+    const transferMintAuthTx = await setAuthority(
+        connection,
+        walletA,
+        mint,
+        walletA.publicKey,
+        AuthorityType.MintTokens,
+        walletB.publicKey
+    );
+    console.log('Mint authority transferred A -> B. Tx:', transferMintAuthTx);
+
+    let mintInfo = await getMint(connection, mint);
+    console.log('Mint authority after transfer:', mintInfo.mintAuthority?.toBase58() || 'null');
+    console.log('Freeze authority (should still be B):', mintInfo.freezeAuthority?.toBase58() || 'null');
+
     console.log('\n--- Admin B FREEZES user C account ---');
 
     const freezeTx = await freezeAccount(
@@ -128,9 +144,25 @@ async function main() {
     );
     console.log('Thaw Tx:', thawTx);
 
-    console.log('\n=== PHASE 3: FINALIZATION ===');
+    console.log('\n=== PHASE 2.2: PROJECT GROWTH (Wallet B mints & transfers) ===');
 
-    let mintInfo = await getMint(connection, mint);
+    const extraMintAmount = 500n * 10n ** BigInt(decimals);
+    const mintTx2 = await mintTo(
+        connection,
+        walletB,
+        mint,
+        userTokenAccount.address,
+        walletB,
+        extraMintAmount
+    );
+    console.log('Wallet B minted extra tokens to C. Tx:', mintTx2);
+
+    userAccountInfo = await getAccount(connection, userTokenAccount.address);
+    console.log('User balance after B mint:', userAccountInfo.amount.toString());
+
+    console.log('\n=== PHASE 3: FINALIZATION (B revokes mint & freeze) ===');
+
+    mintInfo = await getMint(connection, mint);
     console.log('Before revoke: mintAuthority  =', mintInfo.mintAuthority?.toBase58() || 'null');
     console.log('Before revoke: freezeAuthority =', mintInfo.freezeAuthority?.toBase58() || 'null');
 
