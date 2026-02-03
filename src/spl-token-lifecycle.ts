@@ -166,12 +166,12 @@ async function main() {
     console.log('Before revoke: mintAuthority  =', mintInfo.mintAuthority?.toBase58() || 'null');
     console.log('Before revoke: freezeAuthority =', mintInfo.freezeAuthority?.toBase58() || 'null');
 
-    console.log('\n--- Wallet A REVOKES mint authority (fixed supply) ---');
+    console.log('\n--- Wallet B REVOKES mint authority (fixed supply) ---');
     const revokeMintTx = await setAuthority(
         connection,
-        walletA,
+        walletB,
         mint,
-        walletA.publicKey,
+        walletB.publicKey,
         AuthorityType.MintTokens,
         null
     );
